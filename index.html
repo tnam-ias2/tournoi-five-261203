@@ -91,6 +91,7 @@
     <div><label for="transition">Transition (min)</label><input type="number" id="transition" min="0" max="30"></div>
     <div><label for="pitches">Terrains</label><input type="number" id="pitches" min="1" max="12"></div>
     <span class="sp"></span>
+    <button type="button" id="btnCopy">Copier le lien</button>
     <button type="button" id="btnShuffle">Mélanger</button>
     <button type="button" id="btnReset">Effacer les scores</button>
   </div>
@@ -133,8 +134,28 @@
     } catch (e) { /* ignore */ }
     return fresh();
   }
-  let state = load();
-  const save = () => localStorage.setItem(KEY, JSON.stringify(state));
+  /* L'état (équipes, réglages, scores) est aussi porté par l'adresse de la page :
+     le lien copié rouvre le même tournoi sur n'importe quel navigateur, sans serveur. */
+  function readHash() {
+    try {
+      const m = location.hash.match(/^#d=(.+)$/);
+      if (!m) return null;
+      const s = JSON.parse(decodeURIComponent(m[1]));
+      if (!s || !Array.isArray(s.teams) || s.teams.length !== 9) return null;
+      const f = fresh();
+      return Object.assign(f, s, { cfg: Object.assign(f.cfg, s.cfg) });
+    } catch (e) { return null; }
+  }
+  let state = readHash() || load();
+  let hashTimer = null;
+  function writeHash() {
+    try { history.replaceState(null, '', '#d=' + encodeURIComponent(JSON.stringify(state))); } catch (e) { /* ignore */ }
+  }
+  const save = () => {
+    localStorage.setItem(KEY, JSON.stringify(state));
+    clearTimeout(hashTimer);
+    hashTimer = setTimeout(writeHash, 400);
+  };
 
   const name = (i) => (i == null ? null : (state.teams[i] || 'Équipe ' + (i + 1)));
   const toMin = (t) => { const [h, m] = (t || '14:00').split(':').map(Number); return h * 60 + m; };
@@ -371,6 +392,12 @@
     render();
   });
 
+  $('#btnCopy').addEventListener('click', () => {
+    writeHash();
+    const done = () => { $('#btnCopy').textContent = 'Lien copié ✓'; setTimeout(() => { $('#btnCopy').textContent = 'Copier le lien'; }, 2000); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(location.href).then(done, () => prompt('Copiez ce lien :', location.href));
+    else prompt('Copiez ce lien :', location.href);
+  });
   $('#btnReset').addEventListener('click', () => {
     if (!confirm('Effacer tous les scores ?')) return;
     state.scores = {}; state.pen = {};
