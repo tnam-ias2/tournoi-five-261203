@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tournoi de five · 9 équipes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --fg: #0b0f0d; --mut: #5f6f68; --line: #d9dcdb; --soft: #EAEBEC; --bg: #fff; --green: #013220; --lime: #6DFF29; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.45 "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  header { background: var(--green); color: #fff; }
+  header .in { max-width: 720px; margin: 0 auto; padding: 22px 20px 20px; }
+  main { max-width: 720px; margin: 0 auto; padding: 8px 20px 64px; }
+  h1 { font-size: 1.25rem; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 10px; }
+  h1::before { content: ""; width: 14px; height: 14px; background: var(--lime); flex: none; }
+  header .sub { color: rgba(255,255,255,.72); }
+  header .sub a { color: var(--lime); }
+  h2 { font-size: .72rem; text-transform: uppercase; letter-spacing: .09em; color: var(--green); font-weight: 700; margin: 36px 0 12px; display: flex; align-items: center; gap: 8px; }
+  h2::before { content: ""; width: 7px; height: 7px; background: var(--lime); flex: none; }
+  .sub { color: var(--mut); font-size: .88rem; margin: 4px 0 0; }
+  .sub a { color: inherit; }
+  label { display: block; font-size: .75rem; color: var(--mut); margin-bottom: 3px; }
+  input, select { font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 5px 8px; width: 100%; }
+  input:focus, select:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 2px rgba(109,255,41,.45); }
+  button { font: inherit; font-size: .85rem; color: var(--green); background: var(--bg); border: 1px solid var(--green); border-radius: 4px; padding: 5px 12px; cursor: pointer; }
+  button:hover { background: var(--lime); border-color: var(--lime); color: #000; }
+  .cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .cols .g { display: grid; gap: 6px; align-content: start; }
+  .cols .g b { font-size: .8rem; font-weight: 600; }
+  .opts { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-top: 18px; }
+  .opts > div { width: 96px; }
+  .opts .sp { flex: 1; }
+  .round { border-top: 1px solid var(--line); padding: 10px 0 14px; }
+  .rh span:first-child { font-weight: 600; color: var(--green); }
+  .rh { display: flex; justify-content: space-between; font-size: .85rem; margin-bottom: 6px; }
+  .rh .t { color: var(--mut); font-variant-numeric: tabular-nums; }
+  .m { display: grid; grid-template-columns: 62px 1fr auto 1fr; gap: 10px; align-items: center; padding: 5px 0; }
+  .m .p { font-size: .75rem; color: var(--mut); line-height: 1.2; }
+  .m .a { text-align: right; }
+  .m .pend { color: var(--mut); }
+  .m .w { font-weight: 600; }
+  .m .w .n { background: linear-gradient(transparent 58%, rgba(109,255,41,.6) 58%); }
+  .sc { display: flex; align-items: center; gap: 5px; color: var(--mut); }
+  .sc input { width: 46px; text-align: center; padding: 5px 2px; }
+  .pen { font-size: .8rem; color: var(--mut); padding: 0 0 4px 72px; display: flex; gap: 8px; align-items: center; }
+  .pen select { width: auto; padding: 2px 6px; font-size: .8rem; }
+  .rest { font-size: .78rem; color: var(--mut); margin-top: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+  th, td { padding: 5px 6px; text-align: center; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  th { font-size: .7rem; font-weight: 600; color: var(--mut); text-transform: uppercase; letter-spacing: .05em; }
+  th.n, td.n { text-align: left; }
+  tr.q td { background: rgba(109,255,41,.2); }
+  th { background: var(--soft); }
+  .tables { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+  .tables h3 { font-size: .85rem; margin: 0 0 4px; font-weight: 600; color: var(--green); }
+  ol.rank { list-style: none; margin: 0; padding: 0; }
+  ol.rank li { display: flex; gap: 12px; padding: 5px 0; border-bottom: 1px solid var(--line); }
+  ol.rank .pos { width: 28px; color: var(--green); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .podium { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; align-items: end; margin-bottom: 14px; }
+  .pd { border: 1px solid var(--line); border-top: 4px solid var(--c); padding: 12px 8px 14px; text-align: center; background: var(--bg); }
+  .pd.gold { --c: #D4AF37; min-height: 128px; background: linear-gradient(#fffbea, #fff); }
+  .pd.silver { --c: #A7A9AC; min-height: 104px; }
+  .pd.bronze { --c: #B87333; min-height: 92px; }
+  .pd .medal { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: var(--c); color: #fff; font-weight: 700; font-size: .85rem; }
+  .pd .lab { font-size: .7rem; text-transform: uppercase; letter-spacing: .09em; color: var(--mut); margin: 6px 0 2px; }
+  .pd .nm { font-weight: 600; font-size: 1.02rem; word-break: break-word; }
+  .note { color: var(--mut); font-size: .8rem; margin-top: 10px; }
+  @media (max-width: 560px) {
+    .cols { grid-template-columns: 1fr; }
+    .m { grid-template-columns: 1fr auto 1fr; }
+    .m .p { grid-column: 1 / -1; }
+    .pen { padding-left: 0; }
+  }
+</style>
+</head>
+<body>
+<header><div class="in">
+  <h1>Tournoi de five · 9 équipes</h1>
+  <p class="sub" id="summary"></p>
+</div></header>
+<main>
+
+  <h2>Équipes</h2>
+  <div class="cols" id="teams"></div>
+  <div class="opts">
+    <div><label for="start">Début</label><input type="time" id="start"></div>
+    <div><label for="duration">Match (min)</label><input type="number" id="duration" min="1" max="120"></div>
+    <div><label for="transition">Transition (min)</label><input type="number" id="transition" min="0" max="30"></div>
+    <div><label for="pitches">Terrains</label><input type="number" id="pitches" min="1" max="12"></div>
+    <span class="sp"></span>
+    <button type="button" id="btnShuffle">Mélanger</button>
+    <button type="button" id="btnReset">Effacer les scores</button>
+  </div>
+
+  <h2>Planning</h2>
+  <div id="planning"></div>
+
+  <h2>Classements</h2>
+  <div class="tables" id="tables"></div>
+  <div id="seeds"></div>
+  <div id="final"></div>
+  <p class="note">Départage : points, différence de buts, buts marqués. Demi-finales : les 3 premiers de poule + le meilleur 2e. Les deux autres 2es jouent la 5e place.</p>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  const KEY = 'tournoi-9-v1';
+  const GROUPS = ['A', 'B', 'C'];
+  const PAIRS = [[0, 1], [0, 2], [1, 2]]; // rencontres d'une poule de 3 (le 3e est au repos)
+  const REST = [2, 1, 0];
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  function fresh() {
+    return {
+      teams: Array.from({ length: 9 }, (_, i) => 'Équipe ' + (i + 1)),
+      cfg: { start: '14:00', duration: 30, transition: 3, pitches: 4 },
+      scores: {}, pen: {}
+    };
+  }
+  function load() {
+    try {
+      const s = JSON.parse(localStorage.getItem(KEY));
+      if (s && Array.isArray(s.teams) && s.teams.length === 9) {
+        const f = fresh();
+        return Object.assign(f, s, { cfg: Object.assign(f.cfg, s.cfg) });
+      }
+    } catch (e) { /* ignore */ }
+    return fresh();
+  }
+  let state = load();
+  const save = () => localStorage.setItem(KEY, JSON.stringify(state));
+
+  const name = (i) => (i == null ? null : (state.teams[i] || 'Équipe ' + (i + 1)));
+  const toMin = (t) => { const [h, m] = (t || '14:00').split(':').map(Number); return h * 60 + m; };
+  const fmt = (min) => { min = ((min % 1440) + 1440) % 1440; return String(Math.floor(min / 60)).padStart(2, '0') + ':' + String(min % 60).padStart(2, '0'); };
+
+  /* ---------- Scores et classements ---------- */
+  function getScore(id) {
+    const s = state.scores[id];
+    if (!s || s.a === '' || s.b === '' || s.a == null || s.b == null) return null;
+    return { a: Number(s.a), b: Number(s.b) };
+  }
+
+  const cmp = (x, y) => y.pts - x.pts || (y.bp - y.bc) - (x.bp - x.bc) || y.bp - x.bp || x.i - y.i;
+
+  function groupMatches(g) {
+    return PAIRS.map((p, r) => ({ id: 'G' + g + '-' + r, a: 3 * g + p[0], b: 3 * g + p[1] }));
+  }
+
+  function groupTable(g) {
+    const rows = {};
+    [0, 1, 2].forEach((k) => { const i = 3 * g + k; rows[i] = { i: i, g: g, j: 0, w: 0, d: 0, l: 0, bp: 0, bc: 0, pts: 0 }; });
+    let played = 0;
+    groupMatches(g).forEach((m) => {
+      const sc = getScore(m.id);
+      if (!sc) return;
+      played++;
+      const A = rows[m.a], B = rows[m.b];
+      A.j++; B.j++;
+      A.bp += sc.a; A.bc += sc.b; B.bp += sc.b; B.bc += sc.a;
+      if (sc.a > sc.b) { A.w++; B.l++; A.pts += 3; }
+      else if (sc.a < sc.b) { B.w++; A.l++; B.pts += 3; }
+      else { A.d++; B.d++; A.pts++; B.pts++; }
+    });
+    return { rows: Object.values(rows).sort(cmp), complete: played === 3 };
+  }
+
+  /* Qualifiés et têtes de série, une fois les 3 poules terminées */
+  function qualification() {
+    const tabs = [0, 1, 2].map(groupTable);
+    const out = { tabs: tabs, ready: tabs.every((t) => t.complete) };
+    if (!out.ready) return out;
+    const pick = (k) => tabs.map((t) => t.rows[k]).sort(cmp);
+    const winners = pick(0), runners = pick(1);
+    out.thirds = pick(2);
+    const s = [winners[0], winners[1], winners[2], runners[0]];
+    out.seeds = s;
+    // demi-finales 1-4 et 2-3, sauf revanche de poule (alors 1-3 et 2-4)
+    out.sf = s[3].g === s[0].g ? [[s[0].i, s[2].i], [s[1].i, s[3].i]] : [[s[0].i, s[3].i], [s[1].i, s[2].i]];
+    out.p5 = [runners[1].i, runners[2].i];
+    return out;
+  }
+
+  function outcome(id, a, b) {
+    if (a == null || b == null) return null;
+    const sc = getScore(id);
+    if (!sc) return null;
+    if (sc.a > sc.b) return { w: a, l: b };
+    if (sc.b > sc.a) return { w: b, l: a };
+    const p = state.pen[id];
+    if (p === 'a') return { w: a, l: b };
+    if (p === 'b') return { w: b, l: a };
+    return null;
+  }
+
+  /* ---------- Planning ---------- */
+  function buildPlan() {
+    const q = qualification();
+    const rounds = [];
+    for (let r = 0; r < 3; r++) {
+      const ms = [0, 1, 2].map((g) => {
+        const m = groupMatches(g)[r];
+        return { id: m.id, a: m.a, b: m.b, meta: 'Poule ' + GROUPS[g], la: name(m.a), lb: name(m.b) };
+      });
+      const rest = [0, 1, 2].map((g) => name(3 * g + REST[r])).join(' · ');
+      rounds.push({ label: 'Tour ' + (r + 1) + ' · Poules', matches: ms, rest: rest });
+    }
+    const sf1 = { id: 'SF1', meta: 'Demi-finale 1', a: q.ready ? q.sf[0][0] : null, b: q.ready ? q.sf[0][1] : null, pa: 'Tête de série 1', pb: 'Tête de série 4', ko: true };
+    const sf2 = { id: 'SF2', meta: 'Demi-finale 2', a: q.ready ? q.sf[1][0] : null, b: q.ready ? q.sf[1][1] : null, pa: 'Tête de série 2', pb: 'Tête de série 3', ko: true };
+    const p5 = { id: 'P5', meta: '5e place', a: q.ready ? q.p5[0] : null, b: q.ready ? q.p5[1] : null, pa: '2e de poule', pb: '2e de poule', ko: true };
+    const o1 = outcome('SF1', sf1.a, sf1.b), o2 = outcome('SF2', sf2.a, sf2.b);
+    const fin = { id: 'F', meta: 'Finale', a: o1 && o2 ? o1.w : null, b: o1 && o2 ? o2.w : null, pa: 'Vainqueur DF1', pb: 'Vainqueur DF2', ko: true };
+    const p3 = { id: 'P3', meta: 'Petite finale', a: o1 && o2 ? o1.l : null, b: o1 && o2 ? o2.l : null, pa: 'Perdant DF1', pb: 'Perdant DF2', ko: true };
+    rounds.push({ label: 'Tour 4 · Demi-finales', matches: [sf1, sf2, p5] });
+    rounds.push({ label: 'Tour 5 · Finales', matches: [fin, p3] });
+    return { rounds: rounds, q: q, outcomes: { F: outcome('F', fin.a, fin.b), P3: outcome('P3', p3.a, p3.b), P5: outcome('P5', p5.a, p5.b) } };
+  }
+
+  function matchHTML(m, pitch) {
+    const a = m.ko ? name(m.a) : m.la, b = m.ko ? name(m.b) : m.lb;
+    const sc = state.scores[m.id] || { a: '', b: '' };
+    const s = getScore(m.id);
+    const oc = m.ko ? outcome(m.id, m.a, m.b) : null;
+    const winA = s && (m.ko ? (oc && oc.w === m.a) : s.a > s.b);
+    const winB = s && (m.ko ? (oc && oc.w === m.b) : s.b > s.a);
+    const pend = (v) => (v == null ? ' pend' : '');
+    let html = '<div class="m">' +
+      '<div class="p">Terrain ' + pitch + '<br>' + esc(m.meta) + '</div>' +
+      '<div class="a' + pend(m.ko ? m.a : 0) + (winA ? ' w' : '') + '"><span class="n">' + esc(a || m.pa) + '</span></div>' +
+      '<div class="sc"><input type="number" min="0" inputmode="numeric" data-id="' + m.id + '" data-side="a" value="' + esc(sc.a) + '"' + (m.ko && (m.a == null || m.b == null) ? ' disabled' : '') + '>–' +
+      '<input type="number" min="0" inputmode="numeric" data-id="' + m.id + '" data-side="b" value="' + esc(sc.b) + '"' + (m.ko && (m.a == null || m.b == null) ? ' disabled' : '') + '></div>' +
+      '<div class="b' + pend(m.ko ? m.b : 0) + (winB ? ' w' : '') + '"><span class="n">' + esc(b || m.pb) + '</span></div></div>';
+    if (m.ko && s && s.a === s.b && m.a != null && m.b != null) {
+      const p = state.pen[m.id] || '';
+      html += '<div class="pen">Égalité · vainqueur aux tirs au but :' +
+        '<select data-pen="' + m.id + '"><option value="">—</option>' +
+        '<option value="a"' + (p === 'a' ? ' selected' : '') + '>' + esc(a) + '</option>' +
+        '<option value="b"' + (p === 'b' ? ' selected' : '') + '>' + esc(b) + '</option></select></div>';
+    }
+    return html;
+  }
+
+  /* Découpe chaque tour en créneaux de P matchs maximum (un match par terrain) */
+  function slotsOf(plan) {
+    const P = state.cfg.pitches, out = [];
+    plan.rounds.forEach((rd) => {
+      const n = Math.ceil(rd.matches.length / P);
+      for (let k = 0; k < n; k++) {
+        out.push({
+          label: rd.label + (n > 1 ? ' (' + (k + 1) + '/' + n + ')' : ''),
+          matches: rd.matches.slice(k * P, (k + 1) * P),
+          rest: k === n - 1 ? rd.rest : ''
+        });
+      }
+    });
+    return out;
+  }
+
+  function renderPlanning(plan) {
+    const c = state.cfg;
+    let t = toMin(c.start);
+    $('#planning').innerHTML = slotsOf(plan).map((sl) => {
+      const start = t;
+      t += c.duration + c.transition;
+      return '<div class="round"><div class="rh"><span>' + esc(sl.label) + '</span><span class="t">' + fmt(start) + ' – ' + fmt(start + c.duration) + '</span></div>' +
+        sl.matches.map((m, i) => matchHTML(m, i + 1)).join('') +
+        (sl.rest ? '<div class="rest">Au repos : ' + esc(sl.rest) + '</div>' : '') + '</div>';
+    }).join('');
+  }
+
+  /* ---------- Classements ---------- */
+  function tableHTML(g, t, q) {
+    return '<div><h3>Poule ' + GROUPS[g] + (t.complete ? '' : ' <span class="sub">· en cours</span>') + '</h3><table><thead><tr>' +
+      '<th class="n">Équipe</th><th>J</th><th>G</th><th>N</th><th>P</th><th>+/−</th><th>Pts</th></tr></thead><tbody>' +
+      t.rows.map((r, k) => {
+        const d = r.bp - r.bc;
+        return '<tr' + (t.complete && k < 2 ? ' class="q"' : '') + '><td class="n">' + esc(name(r.i)) + '</td><td>' + r.j + '</td><td>' + r.w + '</td><td>' + r.d +
+          '</td><td>' + r.l + '</td><td>' + (d > 0 ? '+' : '') + d + '</td><td><b>' + r.pts + '</b></td></tr>';
+      }).join('') + '</tbody></table></div>';
+  }
+
+  function renderTables(plan) {
+    const q = plan.q;
+    $('#tables').innerHTML = q.tabs.map((t, g) => tableHTML(g, t, q)).join('');
+
+    $('#seeds').innerHTML = q.ready
+      ? '<h2>Qualifiés pour les demi-finales</h2><ol class="rank">' +
+        q.seeds.map((r, k) => '<li><span class="pos">' + (k + 1) + '</span><span>' + esc(name(r.i)) +
+          ' <span class="sub">· ' + (k < 3 ? '1er' : 'meilleur 2e') + ' poule ' + GROUPS[r.g] + '</span></span></li>').join('') + '</ol>'
+      : '';
+
+    const o = plan.outcomes;
+    const pend = '<span class="sub">à jouer</span>';
+    const nm = (res, key) => (res ? esc(name(res[key])) : pend);
+    const medal = (cls, label, n, val) =>
+      '<div class="pd ' + cls + '"><span class="medal">' + n + '</span><div class="lab">' + label + '</div><div class="nm">' + val + '</div></div>';
+    const podium = '<div class="podium">' +
+      medal('silver', 'Argent', 2, nm(o.F, 'l')) +
+      medal('gold', 'Or', 1, nm(o.F, 'w')) +
+      medal('bronze', 'Bronze', 3, nm(o.P3, 'w')) + '</div>';
+    const thirds = q.ready ? q.thirds.map((r) => esc(name(r.i))) : null;
+    const rk = [
+      ['4', nm(o.P3, 'l')], ['5', nm(o.P5, 'w')], ['6', nm(o.P5, 'l')]
+    ].concat([7, 8, 9].map((p, k) => [String(p), thirds ? thirds[k] : pend]));
+    $('#final').innerHTML = '<h2>Classement final</h2>' + podium + '<ol class="rank">' +
+      rk.map((r) => '<li><span class="pos">' + r[0] + '</span><span>' + r[1] + '</span></li>').join('') + '</ol>';
+  }
+
+  function renderSummary(plan) {
+    const c = state.cfg, st = toMin(c.start);
+    const n = slotsOf(plan).length;
+    const end = st + n * c.duration + (n - 1) * c.transition;
+    $('#summary').textContent = '3 poules de 3 · ' + n + ' créneaux de ' + c.duration + ' min · ' + c.pitches + ' terrain' + (c.pitches > 1 ? 's' : '') +
+      (c.pitches > 3 ? ' (3 utilisés)' : '') + ' · ' + fmt(st) + ' → ' + fmt(end);
+  }
+
+  function render() {
+    const act = document.activeElement;
+    const focus = act && act.dataset && act.dataset.id ? { id: act.dataset.id, side: act.dataset.side } : null;
+    save();
+    const plan = buildPlan();
+    renderSummary(plan);
+    renderPlanning(plan);
+    renderTables(plan);
+    if (focus) {
+      const el = document.querySelector('input[data-id="' + focus.id + '"][data-side="' + focus.side + '"]');
+      if (el && !el.disabled) el.focus();
+    }
+  }
+
+  /* ---------- Formulaire ---------- */
+  function renderTeams() {
+    $('#teams').innerHTML = GROUPS.map((G, g) =>
+      '<div class="g"><b>Poule ' + G + '</b>' +
+      [0, 1, 2].map((k) => '<input type="text" data-team="' + (3 * g + k) + '" value="' + esc(state.teams[3 * g + k]) + '">').join('') + '</div>'
+    ).join('');
+    $('#start').value = state.cfg.start;
+    $('#duration').value = state.cfg.duration;
+    $('#transition').value = state.cfg.transition;
+    $('#pitches').value = state.cfg.pitches;
+  }
+
+  $('#teams').addEventListener('input', (e) => {
+    const i = e.target.dataset.team;
+    if (i == null) return;
+    state.teams[Number(i)] = e.target.value;
+    render();
+  });
+  $('#start').addEventListener('input', (e) => { state.cfg.start = e.target.value || '14:00'; render(); });
+  $('#duration').addEventListener('input', (e) => { state.cfg.duration = Math.max(1, parseInt(e.target.value, 10) || 30); render(); });
+  $('#pitches').addEventListener('input', (e) => { state.cfg.pitches = Math.min(12, Math.max(1, parseInt(e.target.value, 10) || 1)); render(); });
+  $('#transition').addEventListener('input', (e) => { state.cfg.transition = Math.max(0, parseInt(e.target.value, 10) || 0); render(); });
+
+  $('#planning').addEventListener('input', (e) => {
+    const t = e.target;
+    if (t.tagName === 'SELECT' && t.dataset.pen) {
+      state.pen[t.dataset.pen] = t.value;
+      render();
+      return;
+    }
+    if (t.tagName !== 'INPUT') return;
+    const id = t.dataset.id;
+    state.scores[id] = state.scores[id] || { a: '', b: '' };
+    state.scores[id][t.dataset.side] = t.value;
+    render();
+  });
+
+  $('#btnReset').addEventListener('click', () => {
+    if (!confirm('Effacer tous les scores ?')) return;
+    state.scores = {}; state.pen = {};
+    render();
+  });
+  $('#btnShuffle').addEventListener('click', () => {
+    if (Object.keys(state.scores).length && !confirm('Mélanger les équipes efface les scores. Continuer ?')) return;
+    const a = state.teams.slice();
+    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    state.teams = a; state.scores = {}; state.pen = {};
+    renderTeams();
+    render();
+  });
+
+  renderTeams();
+  render();
+})();
+</script>
+</body>
+</html>
