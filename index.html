@@ -28,7 +28,7 @@
   input:focus, select:focus { outline: none; border-color: var(--lime); box-shadow: 0 0 0 2px rgba(109,255,41,.22); }
   button { font: inherit; font-size: .85rem; color: var(--fg); background: transparent; border: 1px solid #36513f; border-radius: 4px; padding: 5px 12px; cursor: pointer; }
   button:hover { background: var(--lime); border-color: var(--lime); color: #000; }
-  .cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .cols { display: grid; grid-template-columns: repeat(var(--gc, 3), 1fr); gap: 16px; }
   .cols .g { display: grid; gap: 6px; align-content: start; }
   .cols .g b { font-size: .8rem; font-weight: 600; }
   .opts { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-top: 18px; }
@@ -71,7 +71,7 @@
   .pd .nm { font-weight: 600; font-size: 1.02rem; word-break: break-word; }
   .note { color: var(--mut); font-size: .8rem; margin-top: 10px; }
   @media (max-width: 560px) {
-    .cols { grid-template-columns: 1fr; }
+    .cols { grid-template-columns: 1fr !important; }
     .m { grid-template-columns: 1fr auto 1fr; }
     .m .p { grid-column: 1 / -1; }
     .pen { padding-left: 0; }
@@ -80,7 +80,7 @@
 </head>
 <body>
 <header><div class="in"><div class="hd">
-  <h1>Tournoi de five · 9 équipes</h1>
+  <h1 id="title">Tournoi de five · 9 équipes</h1>
   <p class="sub" id="summary"></p>
 </div><img class="logo" alt="IAS" src="data:image/png;base64,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"></div></header>
 <main>
@@ -88,6 +88,7 @@
   <h2>Équipes</h2>
   <div class="cols" id="teams"></div>
   <div class="opts">
+    <div><label for="count">Équipes</label><select id="count"></select></div>
     <div><label for="start">Début</label><input type="time" id="start"></div>
     <div><label for="duration">Match (min)</label><input type="number" id="duration" min="1" max="120"></div>
     <div><label for="transition">Transition (min)</label><input type="number" id="transition" min="0" max="30"></div>
@@ -106,7 +107,7 @@
   <div class="tables" id="tables"></div>
   <div id="seeds"></div>
   <div id="final"></div>
-  <p class="note">Départage : points, différence de buts, buts marqués. Demi-finales : les 3 premiers de poule + le meilleur 2e. Les deux autres 2es jouent la 5e place.</p>
+  <p class="note" id="note"></p>
 </main>
 
 <script>
@@ -114,39 +115,42 @@
   'use strict';
 
   const KEY = 'tournoi-9-v1';
-  const GROUPS = ['A', 'B', 'C'];
-  const PAIRS = [[0, 1], [0, 2], [1, 2]]; // rencontres d'une poule de 3 (le 3e est au repos)
-  const REST = [2, 1, 0];
+  const MIN_N = 6, MAX_N = 12;
+  const LETTERS = ['A', 'B', 'C'];
+  // composition des poules selon le nombre d'équipes
+  const SIZES = { 6: [3, 3], 7: [4, 3], 8: [4, 4], 9: [3, 3, 3], 10: [4, 3, 3], 11: [4, 4, 3], 12: [4, 4, 4] };
+  // rencontres d'une poule, tour par tour
+  const R3 = [[[0, 1]], [[0, 2]], [[1, 2]]];                                  // le 3e est au repos
+  const R4 = [[[0, 1], [2, 3]], [[0, 2], [1, 3]], [[0, 3], [1, 2]]];
+  const REST3 = [2, 1, 0];
   const $ = (s) => document.querySelector(s);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+  /* ---------- État ---------- */
   function fresh() {
     return {
-      teams: Array.from({ length: 9 }, (_, i) => 'Équipe ' + (i + 1)),
+      n: 9,
+      teams: Array.from({ length: MAX_N }, (_, i) => 'Équipe ' + (i + 1)),
       cfg: { start: '14:00', duration: 30, transition: 3, pitches: 4 },
       scores: {}, pen: {}
     };
   }
+  function normalize(s) {
+    if (!s || !Array.isArray(s.teams) || s.teams.length < MIN_N) return null;
+    const f = fresh();
+    const n = Math.min(MAX_N, Math.max(MIN_N, parseInt(s.n, 10) || s.teams.length));
+    const teams = f.teams.map((d, i) => (typeof s.teams[i] === 'string' ? s.teams[i] : d));
+    return Object.assign(f, s, { n: n, teams: teams, cfg: Object.assign(f.cfg, s.cfg) });
+  }
   function load() {
-    try {
-      const s = JSON.parse(localStorage.getItem(KEY));
-      if (s && Array.isArray(s.teams) && s.teams.length === 9) {
-        const f = fresh();
-        return Object.assign(f, s, { cfg: Object.assign(f.cfg, s.cfg) });
-      }
-    } catch (e) { /* ignore */ }
-    return fresh();
+    try { return normalize(JSON.parse(localStorage.getItem(KEY))) || fresh(); } catch (e) { return fresh(); }
   }
   /* L'état (équipes, réglages, scores) est aussi porté par l'adresse de la page :
      le lien copié rouvre le même tournoi sur n'importe quel navigateur, sans serveur. */
   function readHash() {
     try {
       const m = location.hash.match(/^#d=(.+)$/);
-      if (!m) return null;
-      const s = JSON.parse(decodeURIComponent(m[1]));
-      if (!s || !Array.isArray(s.teams) || s.teams.length !== 9) return null;
-      const f = fresh();
-      return Object.assign(f, s, { cfg: Object.assign(f.cfg, s.cfg) });
+      return m ? normalize(JSON.parse(decodeURIComponent(m[1]))) : null;
     } catch (e) { return null; }
   }
   let state = readHash() || load();
@@ -163,6 +167,22 @@
   const name = (i) => (i == null ? null : (state.teams[i] || 'Équipe ' + (i + 1)));
   const toMin = (t) => { const [h, m] = (t || '14:00').split(':').map(Number); return h * 60 + m; };
   const fmt = (min) => { min = ((min % 1440) + 1440) % 1440; return String(Math.floor(min / 60)).padStart(2, '0') + ':' + String(min % 60).padStart(2, '0'); };
+  const ordinal = (n) => (n === 1 ? '1er' : n + 'e');
+
+  /* ---------- Structure du tournoi ---------- */
+  const sizes = () => SIZES[state.n];
+  const mode = () => (sizes().length === 2 ? 'cross' : 'sf');
+  const groupStart = (g) => sizes().slice(0, g).reduce((a, b) => a + b, 0);
+
+  function groupRound(g, r) {
+    const base = groupStart(g);
+    return (sizes()[g] === 3 ? R3 : R4)[r].map((p, k) => ({ id: 'G' + g + '-' + r + (k ? '-' + k : ''), a: base + p[0], b: base + p[1] }));
+  }
+  const groupMatchList = (g) => [0, 1, 2].reduce((acc, r) => acc.concat(groupRound(g, r)), []);
+
+  /* Équipes restant hors des demi-finales/5e place (3es et 4es de poule) en mode « sf » */
+  const restCount = () => 3 + sizes().filter((s) => s === 4).length;
+  const consCount = () => (restCount() >= 4 ? Math.floor(restCount() / 2) : 0);
 
   /* ---------- Scores et classements ---------- */
   function getScore(id) {
@@ -171,17 +191,19 @@
     return { a: Number(s.a), b: Number(s.b) };
   }
 
+  // à l'intérieur d'une poule, puis entre poules (rapporté au nombre de matchs joués)
   const cmp = (x, y) => y.pts - x.pts || (y.bp - y.bc) - (x.bp - x.bc) || y.bp - x.bp || x.i - y.i;
-
-  function groupMatches(g) {
-    return PAIRS.map((p, r) => ({ id: 'G' + g + '-' + r, a: 3 * g + p[0], b: 3 * g + p[1] }));
-  }
+  const per = (v, j) => (j ? v / j : 0);
+  const cmpX = (x, y) => per(y.pts, y.j) - per(x.pts, x.j) || per(y.bp - y.bc, y.j) - per(x.bp - x.bc, x.j) ||
+    per(y.bp, y.j) - per(x.bp, x.j) || x.i - y.i;
 
   function groupTable(g) {
     const rows = {};
-    [0, 1, 2].forEach((k) => { const i = 3 * g + k; rows[i] = { i: i, g: g, j: 0, w: 0, d: 0, l: 0, bp: 0, bc: 0, pts: 0 }; });
+    const base = groupStart(g);
+    for (let k = 0; k < sizes()[g]; k++) { const i = base + k; rows[i] = { i: i, g: g, j: 0, w: 0, d: 0, l: 0, bp: 0, bc: 0, pts: 0 }; }
+    const list = groupMatchList(g);
     let played = 0;
-    groupMatches(g).forEach((m) => {
+    list.forEach((m) => {
       const sc = getScore(m.id);
       if (!sc) return;
       played++;
@@ -192,22 +214,38 @@
       else if (sc.a < sc.b) { B.w++; A.l++; B.pts += 3; }
       else { A.d++; B.d++; A.pts++; B.pts++; }
     });
-    return { rows: Object.values(rows).sort(cmp), complete: played === 3 };
+    return { rows: Object.values(rows).sort(cmp), complete: played === list.length };
   }
 
-  /* Qualifiés et têtes de série, une fois les 3 poules terminées */
+  /* Qualifiés et rencontres de classement, une fois toutes les poules terminées */
   function qualification() {
-    const tabs = [0, 1, 2].map(groupTable);
-    const out = { tabs: tabs, ready: tabs.every((t) => t.complete) };
+    const tabs = sizes().map((_, g) => groupTable(g));
+    const out = { tabs: tabs, mode: mode(), ready: tabs.every((t) => t.complete) };
     if (!out.ready) return out;
-    const pick = (k) => tabs.map((t) => t.rows[k]).sort(cmp);
+
+    if (out.mode === 'cross') {
+      const k = Math.min.apply(null, sizes());
+      out.cross = Array.from({ length: k }, (_, x) => ({ a: tabs[0].rows[x].i, b: tabs[1].rows[x].i }));
+      out.left = [];
+      tabs.forEach((t) => t.rows.slice(k).forEach((r) => out.left.push(r)));
+      return out;
+    }
+
+    const pick = (rank) => tabs.map((t) => t.rows[rank]).filter(Boolean).sort(cmpX);
     const winners = pick(0), runners = pick(1);
-    out.thirds = pick(2);
     const s = [winners[0], winners[1], winners[2], runners[0]];
     out.seeds = s;
     // demi-finales 1-4 et 2-3, sauf revanche de poule (alors 1-3 et 2-4)
     out.sf = s[3].g === s[0].g ? [[s[0].i, s[2].i], [s[1].i, s[3].i]] : [[s[0].i, s[3].i], [s[1].i, s[2].i]];
     out.p5 = [runners[1].i, runners[2].i];
+    const rest = pick(2).concat(pick(3));           // les 3es, puis les 4es
+    out.cons = [];
+    if (rest.length >= 4) {
+      for (let j = 0; j + 1 < rest.length; j += 2) out.cons.push([rest[j].i, rest[j + 1].i]);
+      out.left = rest.length % 2 ? [rest[rest.length - 1]] : [];
+    } else {
+      out.left = rest;
+    }
     return out;
   }
 
@@ -226,24 +264,52 @@
   /* ---------- Planning ---------- */
   function buildPlan() {
     const q = qualification();
+    const G = sizes().length;
     const rounds = [];
+
     for (let r = 0; r < 3; r++) {
-      const ms = [0, 1, 2].map((g) => {
-        const m = groupMatches(g)[r];
-        return { id: m.id, a: m.a, b: m.b, meta: 'Poule ' + GROUPS[g], la: name(m.a), lb: name(m.b) };
-      });
-      const rest = [0, 1, 2].map((g) => name(3 * g + REST[r])).join(' · ');
-      rounds.push({ label: 'Tour ' + (r + 1) + ' · Poules', matches: ms, rest: rest });
+      const ms = [], rest = [];
+      for (let g = 0; g < G; g++) {
+        groupRound(g, r).forEach((m) => ms.push({ id: m.id, a: m.a, b: m.b, meta: 'Poule ' + LETTERS[g], la: name(m.a), lb: name(m.b) }));
+        if (sizes()[g] === 3) rest.push(name(groupStart(g) + REST3[r]));
+      }
+      rounds.push({ label: 'Tour ' + (r + 1) + ' · Poules', matches: ms, rest: rest.join(' · ') });
     }
-    const sf1 = { id: 'SF1', meta: 'Demi-finale 1', a: q.ready ? q.sf[0][0] : null, b: q.ready ? q.sf[0][1] : null, pa: 'Tête de série 1', pb: 'Tête de série 4', ko: true };
-    const sf2 = { id: 'SF2', meta: 'Demi-finale 2', a: q.ready ? q.sf[1][0] : null, b: q.ready ? q.sf[1][1] : null, pa: 'Tête de série 2', pb: 'Tête de série 3', ko: true };
-    const p5 = { id: 'P5', meta: '5e place', a: q.ready ? q.p5[0] : null, b: q.ready ? q.p5[1] : null, pa: '2e de poule', pb: '2e de poule', ko: true };
-    const o1 = outcome('SF1', sf1.a, sf1.b), o2 = outcome('SF2', sf2.a, sf2.b);
-    const fin = { id: 'F', meta: 'Finale', a: o1 && o2 ? o1.w : null, b: o1 && o2 ? o2.w : null, pa: 'Vainqueur DF1', pb: 'Vainqueur DF2', ko: true };
-    const p3 = { id: 'P3', meta: 'Petite finale', a: o1 && o2 ? o1.l : null, b: o1 && o2 ? o2.l : null, pa: 'Perdant DF1', pb: 'Perdant DF2', ko: true };
-    rounds.push({ label: 'Tour 4 · Demi-finales', matches: [sf1, sf2, p5] });
-    rounds.push({ label: 'Tour 5 · Finales', matches: [fin, p3] });
-    return { rounds: rounds, q: q, outcomes: { F: outcome('F', fin.a, fin.b), P3: outcome('P3', p3.a, p3.b), P5: outcome('P5', p5.a, p5.b) } };
+
+    const ko = {};                       // id -> match
+    const mk = (id, meta, a, b, pa, pb) => { ko[id] = { id: id, meta: meta, a: a == null ? null : a, b: b == null ? null : b, pa: pa, pb: pb, ko: true }; return ko[id]; };
+    const at = (arr, k) => (q.ready && arr ? arr[k] : null);
+    let placeIds;
+
+    if (q.mode === 'cross') {
+      const k = Math.min.apply(null, sizes());
+      const ids = ['F', 'P3', 'P5', 'P7'], metas = ['Finale', 'Petite finale', '5e place', '7e place'];
+      const ms = [];
+      for (let x = 0; x < k; x++) {
+        ms.push(mk(ids[x], metas[x], q.ready ? q.cross[x].a : null, q.ready ? q.cross[x].b : null, ordinal(x + 1) + ' poule A', ordinal(x + 1) + ' poule B'));
+      }
+      rounds.push({ label: 'Tour 4 · Finales', matches: ms });
+      placeIds = ids.slice(0, k);
+    } else {
+      const sf1 = mk('SF1', 'Demi-finale 1', at(q.sf, 0) && q.sf[0][0], at(q.sf, 0) && q.sf[0][1], 'Tête de série 1', 'Tête de série 4');
+      const sf2 = mk('SF2', 'Demi-finale 2', at(q.sf, 1) && q.sf[1][0], at(q.sf, 1) && q.sf[1][1], 'Tête de série 2', 'Tête de série 3');
+      const p5 = mk('P5', '5e place', q.ready ? q.p5[0] : null, q.ready ? q.p5[1] : null, '2e de poule', '2e de poule');
+      const o1 = outcome('SF1', sf1.a, sf1.b), o2 = outcome('SF2', sf2.a, sf2.b);
+      const fin = mk('F', 'Finale', o1 && o2 ? o1.w : null, o1 && o2 ? o2.w : null, 'Vainqueur DF1', 'Vainqueur DF2');
+      const p3 = mk('P3', 'Petite finale', o1 && o2 ? o1.l : null, o1 && o2 ? o2.l : null, 'Perdant DF1', 'Perdant DF2');
+      const consIds = ['P7', 'P9', 'P11'], consMeta = ['7e place', '9e place', '11e place'];
+      const cons = [];
+      for (let j = 0; j < consCount(); j++) {
+        cons.push(mk(consIds[j], consMeta[j], q.ready ? q.cons[j][0] : null, q.ready ? q.cons[j][1] : null, 'À déterminer', 'À déterminer'));
+      }
+      rounds.push({ label: 'Tour 4 · Demi-finales', matches: [sf1, sf2, p5].concat(cons.slice(0, 1)) });
+      rounds.push({ label: 'Tour 5 · Finales', matches: [fin, p3].concat(cons.slice(1)) });
+      placeIds = ['F', 'P3', 'P5'].concat(consIds.slice(0, consCount()));
+    }
+
+    const outcomes = {};
+    Object.keys(ko).forEach((id) => { outcomes[id] = outcome(id, ko[id].a, ko[id].b); });
+    return { rounds: rounds, q: q, outcomes: outcomes, placeIds: placeIds };
   }
 
   function matchHTML(m, pitch) {
@@ -254,11 +320,12 @@
     const winA = s && (m.ko ? (oc && oc.w === m.a) : s.a > s.b);
     const winB = s && (m.ko ? (oc && oc.w === m.b) : s.b > s.a);
     const pend = (v) => (v == null ? ' pend' : '');
+    const off = m.ko && (m.a == null || m.b == null) ? ' disabled' : '';
     let html = '<div class="m">' +
       '<div class="p">Terrain ' + pitch + '<br>' + esc(m.meta) + '</div>' +
       '<div class="a' + pend(m.ko ? m.a : 0) + (winA ? ' w' : '') + '"><span class="n">' + esc(a || m.pa) + '</span></div>' +
-      '<div class="sc"><input type="number" min="0" inputmode="numeric" data-id="' + m.id + '" data-side="a" value="' + esc(sc.a) + '"' + (m.ko && (m.a == null || m.b == null) ? ' disabled' : '') + '>–' +
-      '<input type="number" min="0" inputmode="numeric" data-id="' + m.id + '" data-side="b" value="' + esc(sc.b) + '"' + (m.ko && (m.a == null || m.b == null) ? ' disabled' : '') + '></div>' +
+      '<div class="sc"><input type="number" min="0" inputmode="numeric" data-id="' + m.id + '" data-side="a" value="' + esc(sc.a) + '"' + off + '>–' +
+      '<input type="number" min="0" inputmode="numeric" data-id="' + m.id + '" data-side="b" value="' + esc(sc.b) + '"' + off + '></div>' +
       '<div class="b' + pend(m.ko ? m.b : 0) + (winB ? ' w' : '') + '"><span class="n">' + esc(b || m.pb) + '</span></div></div>';
     if (m.ko && s && s.a === s.b && m.a != null && m.b != null) {
       const p = state.pen[m.id] || '';
@@ -299,8 +366,8 @@
   }
 
   /* ---------- Classements ---------- */
-  function tableHTML(g, t, q) {
-    return '<div><h3>Poule ' + GROUPS[g] + (t.complete ? '' : ' <span class="sub">· en cours</span>') + '</h3><table><thead><tr>' +
+  function tableHTML(g, t) {
+    return '<div><h3>Poule ' + LETTERS[g] + (t.complete ? '' : ' <span class="sub">· en cours</span>') + '</h3><table><thead><tr>' +
       '<th class="n">Équipe</th><th>J</th><th>G</th><th>N</th><th>P</th><th>+/−</th><th>Pts</th></tr></thead><tbody>' +
       t.rows.map((r, k) => {
         const d = r.bp - r.bc;
@@ -311,37 +378,48 @@
 
   function renderTables(plan) {
     const q = plan.q;
-    $('#tables').innerHTML = q.tabs.map((t, g) => tableHTML(g, t, q)).join('');
+    $('#tables').innerHTML = q.tabs.map((t, g) => tableHTML(g, t)).join('');
 
-    $('#seeds').innerHTML = q.ready
+    $('#seeds').innerHTML = q.ready && q.mode === 'sf'
       ? '<h2>Qualifiés pour les demi-finales</h2><ol class="rank">' +
         q.seeds.map((r, k) => '<li><span class="pos">' + (k + 1) + '</span><span>' + esc(name(r.i)) +
-          ' <span class="sub">· ' + (k < 3 ? '1er' : 'meilleur 2e') + ' poule ' + GROUPS[r.g] + '</span></span></li>').join('') + '</ol>'
+          ' <span class="sub">· ' + (k < 3 ? '1er' : 'meilleur 2e') + ' poule ' + LETTERS[r.g] + '</span></span></li>').join('') + '</ol>'
       : '';
 
-    const o = plan.outcomes;
+    // classement final : les places viennent des matchs de classement, puis des équipes restantes
     const pend = '<span class="sub">à jouer</span>';
-    const nm = (res, key) => (res ? esc(name(res[key])) : pend);
+    const places = [];
+    plan.placeIds.forEach((id) => {
+      const o = plan.outcomes[id];
+      places.push(o ? esc(name(o.w)) : pend);
+      places.push(o ? esc(name(o.l)) : pend);
+    });
+    const nLeft = state.n - places.length;
+    for (let k = 0; k < nLeft; k++) places.push(q.ready && q.left[k] ? esc(name(q.left[k].i)) : pend);
+
     const medal = (cls, label, n, val) =>
       '<div class="pd ' + cls + '"><span class="medal">' + n + '</span><div class="lab">' + label + '</div><div class="nm">' + val + '</div></div>';
-    const podium = '<div class="podium">' +
-      medal('silver', 'Argent', 2, nm(o.F, 'l')) +
-      medal('gold', 'Or', 1, nm(o.F, 'w')) +
-      medal('bronze', 'Bronze', 3, nm(o.P3, 'w')) + '</div>';
-    const thirds = q.ready ? q.thirds.map((r) => esc(name(r.i))) : null;
-    const rk = [
-      ['4', nm(o.P3, 'l')], ['5', nm(o.P5, 'w')], ['6', nm(o.P5, 'l')]
-    ].concat([7, 8, 9].map((p, k) => [String(p), thirds ? thirds[k] : pend]));
+    const podium = '<div class="podium">' + medal('silver', 'Argent', 2, places[1]) + medal('gold', 'Or', 1, places[0]) + medal('bronze', 'Bronze', 3, places[2]) + '</div>';
     $('#final').innerHTML = '<h2>Classement final</h2>' + podium + '<ol class="rank">' +
-      rk.map((r) => '<li><span class="pos">' + r[0] + '</span><span>' + r[1] + '</span></li>').join('') + '</ol>';
+      places.slice(3).map((v, k) => '<li><span class="pos">' + (k + 4) + '</span><span>' + v + '</span></li>').join('') + '</ol>';
+
+    $('#note').textContent = 'Départage : points, différence de buts, buts marqués' + (new Set(sizes()).size > 1 ? ' (comparés par match entre poules de tailles différentes)' : '') + '. ' +
+      (q.mode === 'cross'
+        ? 'Finale : les 1ers de chaque poule ; petite finale : les 2es ; puis 5e place (3es)' + (sizes()[0] === 4 && sizes()[1] === 4 ? ' et 7e place (4es).' : '.')
+        : 'Demi-finales : les 3 premiers de poule + le meilleur 2e. Les deux autres 2es jouent la 5e place' +
+          (consCount() ? ', les autres équipes s\u2019affrontent ensuite par rang pour les places suivantes.' : '.'));
   }
 
   function renderSummary(plan) {
-    const c = state.cfg, st = toMin(c.start);
-    const n = slotsOf(plan).length;
+    const c = state.cfg, st = toMin(c.start), z = sizes();
+    const slots = slotsOf(plan), n = slots.length;
     const end = st + n * c.duration + (n - 1) * c.transition;
-    $('#summary').textContent = '3 poules de 3 · ' + n + ' créneaux de ' + c.duration + ' min · ' + c.pitches + ' terrain' + (c.pitches > 1 ? 's' : '') +
-      (c.pitches > 3 ? ' (3 utilisés)' : '') + ' · ' + fmt(st) + ' → ' + fmt(end);
+    const par = Math.max.apply(null, plan.rounds.map((r) => r.matches.length));
+    const comp = z.every((v) => v === z[0]) ? z.length + ' poules de ' + z[0] : z.length + ' poules (' + z.join(' + ') + ')';
+    $('#title').textContent = 'Tournoi de five · ' + state.n + ' équipes';
+    document.title = 'Tournoi de five · ' + state.n + ' équipes';
+    $('#summary').textContent = comp + ' · ' + n + ' créneaux de ' + c.duration + ' min · ' + c.pitches + ' terrain' + (c.pitches > 1 ? 's' : '') +
+      (c.pitches > par ? ' (' + par + ' utilisés)' : '') + ' · ' + fmt(st) + ' → ' + fmt(end);
   }
 
   function render() {
@@ -360,16 +438,29 @@
 
   /* ---------- Formulaire ---------- */
   function renderTeams() {
-    $('#teams').innerHTML = GROUPS.map((G, g) =>
-      '<div class="g"><b>Poule ' + G + '</b>' +
-      [0, 1, 2].map((k) => '<input type="text" data-team="' + (3 * g + k) + '" value="' + esc(state.teams[3 * g + k]) + '">').join('') + '</div>'
-    ).join('');
+    const z = sizes();
+    $('#teams').style.setProperty('--gc', z.length);
+    $('#teams').innerHTML = z.map((size, g) => {
+      const base = groupStart(g);
+      return '<div class="g"><b>Poule ' + LETTERS[g] + '</b>' +
+        Array.from({ length: size }, (_, k) => '<input type="text" data-team="' + (base + k) + '" value="' + esc(state.teams[base + k]) + '">').join('') + '</div>';
+    }).join('');
+    $('#count').value = state.n;
     $('#start').value = state.cfg.start;
     $('#duration').value = state.cfg.duration;
     $('#transition').value = state.cfg.transition;
     $('#pitches').value = state.cfg.pitches;
   }
 
+  $('#count').innerHTML = Array.from({ length: MAX_N - MIN_N + 1 }, (_, k) => '<option value="' + (MIN_N + k) + '">' + (MIN_N + k) + '</option>').join('');
+  $('#count').addEventListener('change', (e) => {
+    const n = parseInt(e.target.value, 10);
+    if (n === state.n) return;
+    if (Object.keys(state.scores).length && !confirm('Changer le nombre d\u2019équipes efface les scores. Continuer ?')) { e.target.value = state.n; return; }
+    state.n = n; state.scores = {}; state.pen = {};
+    renderTeams();
+    render();
+  });
   $('#teams').addEventListener('input', (e) => {
     const i = e.target.dataset.team;
     if (i == null) return;
@@ -408,9 +499,9 @@
   });
   $('#btnShuffle').addEventListener('click', () => {
     if (Object.keys(state.scores).length && !confirm('Mélanger les équipes efface les scores. Continuer ?')) return;
-    const a = state.teams.slice();
+    const a = state.teams.slice(0, state.n);
     for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
-    state.teams = a; state.scores = {}; state.pen = {};
+    state.teams = a.concat(state.teams.slice(state.n)); state.scores = {}; state.pen = {};
     renderTeams();
     render();
   });
