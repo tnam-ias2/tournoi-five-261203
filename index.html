@@ -118,11 +118,15 @@
   const MIN_N = 6, MAX_N = 12;
   const LETTERS = ['A', 'B', 'C'];
   // composition des poules selon le nombre d'équipes
-  const SIZES = { 6: [3, 3], 7: [4, 3], 8: [4, 4], 9: [3, 3, 3], 10: [4, 3, 3], 11: [4, 4, 3], 12: [4, 4, 4] };
+  const SIZES = { 6: [3, 3], 7: [4, 3], 8: [4, 4], 9: [3, 3, 3], 10: [5, 5], 11: [4, 4, 3], 12: [4, 4, 4] };
   // rencontres d'une poule, tour par tour
   const R3 = [[[0, 1]], [[0, 2]], [[1, 2]]];                                  // le 3e est au repos
   const R4 = [[[0, 1], [2, 3]], [[0, 2], [1, 3]], [[0, 3], [1, 2]]];
+  const R5 = [[[1, 4], [2, 3]], [[0, 2], [3, 4]], [[1, 3], [0, 4]], [[2, 4], [0, 1]], [[0, 3], [1, 2]]];  // 1 équipe au repos par tour
   const REST3 = [2, 1, 0];
+  const REST5 = [0, 1, 2, 3, 4];
+  const roundsOf = (size) => (size === 5 ? 5 : 3);
+  const nRounds = () => Math.max.apply(null, SIZES[state.n].map(roundsOf));
   const $ = (s) => document.querySelector(s);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -176,9 +180,11 @@
 
   function groupRound(g, r) {
     const base = groupStart(g);
-    return (sizes()[g] === 3 ? R3 : R4)[r].map((p, k) => ({ id: 'G' + g + '-' + r + (k ? '-' + k : ''), a: base + p[0], b: base + p[1] }));
+    const size = sizes()[g];
+    const tpl = size === 3 ? R3 : size === 4 ? R4 : R5;
+    return (tpl[r] || []).map((p, k) => ({ id: 'G' + g + '-' + r + (k ? '-' + k : ''), a: base + p[0], b: base + p[1] }));
   }
-  const groupMatchList = (g) => [0, 1, 2].reduce((acc, r) => acc.concat(groupRound(g, r)), []);
+  const groupMatchList = (g) => Array.from({ length: roundsOf(sizes()[g]) }, (_, r) => r).reduce((acc, r) => acc.concat(groupRound(g, r)), []);
 
   /* Équipes restant hors des demi-finales/5e place (3es et 4es de poule) en mode « sf » */
   const restCount = () => 3 + sizes().filter((s) => s === 4).length;
@@ -267,11 +273,13 @@
     const G = sizes().length;
     const rounds = [];
 
-    for (let r = 0; r < 3; r++) {
+    const NR = nRounds();
+    for (let r = 0; r < NR; r++) {
       const ms = [], rest = [];
       for (let g = 0; g < G; g++) {
         groupRound(g, r).forEach((m) => ms.push({ id: m.id, a: m.a, b: m.b, meta: 'Poule ' + LETTERS[g], la: name(m.a), lb: name(m.b) }));
         if (sizes()[g] === 3) rest.push(name(groupStart(g) + REST3[r]));
+        if (sizes()[g] === 5) rest.push(name(groupStart(g) + REST5[r]));
       }
       rounds.push({ label: 'Tour ' + (r + 1) + ' · Poules', matches: ms, rest: rest.join(' · ') });
     }
@@ -283,12 +291,12 @@
 
     if (q.mode === 'cross') {
       const k = Math.min.apply(null, sizes());
-      const ids = ['F', 'P3', 'P5', 'P7'], metas = ['Finale', 'Petite finale', '5e place', '7e place'];
+      const ids = ['F', 'P3', 'P5', 'P7', 'P9'], metas = ['Finale', 'Petite finale', '5e place', '7e place', '9e place'];
       const ms = [];
       for (let x = 0; x < k; x++) {
         ms.push(mk(ids[x], metas[x], q.ready ? q.cross[x].a : null, q.ready ? q.cross[x].b : null, ordinal(x + 1) + ' poule A', ordinal(x + 1) + ' poule B'));
       }
-      rounds.push({ label: 'Tour 4 · Finales', matches: ms });
+      rounds.push({ label: 'Tour ' + (NR + 1) + ' · Finales', matches: ms });
       placeIds = ids.slice(0, k);
     } else {
       const sf1 = mk('SF1', 'Demi-finale 1', at(q.sf, 0) && q.sf[0][0], at(q.sf, 0) && q.sf[0][1], 'Tête de série 1', 'Tête de série 4');
@@ -302,8 +310,8 @@
       for (let j = 0; j < consCount(); j++) {
         cons.push(mk(consIds[j], consMeta[j], q.ready ? q.cons[j][0] : null, q.ready ? q.cons[j][1] : null, 'À déterminer', 'À déterminer'));
       }
-      rounds.push({ label: 'Tour 4 · Demi-finales', matches: [sf1, sf2, p5].concat(cons.slice(0, 1)) });
-      rounds.push({ label: 'Tour 5 · Finales', matches: [fin, p3].concat(cons.slice(1)) });
+      rounds.push({ label: 'Tour ' + (NR + 1) + ' · Demi-finales', matches: [sf1, sf2, p5].concat(cons.slice(0, 1)) });
+      rounds.push({ label: 'Tour ' + (NR + 2) + ' · Finales', matches: [fin, p3].concat(cons.slice(1)) });
       placeIds = ['F', 'P3', 'P5'].concat(consIds.slice(0, consCount()));
     }
 
@@ -405,7 +413,7 @@
 
     $('#note').textContent = 'Départage : points, différence de buts, buts marqués' + (new Set(sizes()).size > 1 ? ' (comparés par match entre poules de tailles différentes)' : '') + '. ' +
       (q.mode === 'cross'
-        ? 'Finale : les 1ers de chaque poule ; petite finale : les 2es ; puis 5e place (3es)' + (sizes()[0] === 4 && sizes()[1] === 4 ? ' et 7e place (4es).' : '.')
+        ? 'Finale : les 1ers de chaque poule ; petite finale : les 2es ; puis 5e place (3es)' + (Math.min.apply(null, sizes()) >= 4 ? ', 7e place (4es)' : '') + (Math.min.apply(null, sizes()) >= 5 ? ', 9e place (5es)' : '') + '.'
         : 'Demi-finales : les 3 premiers de poule + le meilleur 2e. Les deux autres 2es jouent la 5e place' +
           (consCount() ? ', les autres équipes s\u2019affrontent ensuite par rang pour les places suivantes.' : '.'));
   }
