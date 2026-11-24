@@ -89,6 +89,7 @@
   <div class="cols" id="teams"></div>
   <div class="opts">
     <div><label for="count">Équipes</label><select id="count"></select></div>
+    <div style="width:170px"><label for="groups">Poules</label><select id="groups"></select></div>
     <div><label for="start">Début</label><input type="time" id="start"></div>
     <div><label for="duration">Match (min)</label><input type="number" id="duration" min="1" max="120"></div>
     <div><label for="transition">Transition (min)</label><input type="number" id="transition" min="0" max="30"></div>
@@ -118,22 +119,30 @@
   const MIN_N = 6, MAX_N = 12;
   const LETTERS = ['A', 'B', 'C'];
   // composition des poules selon le nombre d'équipes
-  const SIZES = { 6: [3, 3], 7: [4, 3], 8: [4, 4], 9: [3, 3, 3], 10: [5, 5], 11: [4, 4, 3], 12: [4, 4, 4] };
+  // nombres de poules proposés selon le nombre d'équipes (le premier est le choix par défaut)
+  const GROUP_OPTS = { 6: [2], 7: [2], 8: [2], 9: [3, 2], 10: [2, 3], 11: [3, 2], 12: [3, 2] };
+  const defaultG = (n) => GROUP_OPTS[n][0];
+  function sizesFor(n, g) {
+    const base = Math.floor(n / g), rem = n % g;
+    return Array.from({ length: g }, (_, k) => base + (k < rem ? 1 : 0));
+  }
   // rencontres d'une poule, tour par tour
   const R3 = [[[0, 1]], [[0, 2]], [[1, 2]]];                                  // le 3e est au repos
   const R4 = [[[0, 1], [2, 3]], [[0, 2], [1, 3]], [[0, 3], [1, 2]]];
   const R5 = [[[1, 4], [2, 3]], [[0, 2], [3, 4]], [[1, 3], [0, 4]], [[2, 4], [0, 1]], [[0, 3], [1, 2]]];  // 1 équipe au repos par tour
+  // poule de 6 : méthode du cercle, 5 tours de 3 matchs
+  const R6 = Array.from({ length: 5 }, (_, r) => [[5, r]].concat([1, 2].map((k) => [(r + k) % 5, (r - k + 5) % 5])));
   const REST3 = [2, 1, 0];
   const REST5 = [0, 1, 2, 3, 4];
-  const roundsOf = (size) => (size === 5 ? 5 : 3);
-  const nRounds = () => Math.max.apply(null, SIZES[state.n].map(roundsOf));
+  const roundsOf = (size) => (size >= 5 ? 5 : 3);
+  const nRounds = () => Math.max.apply(null, sizes().map(roundsOf));
   const $ = (s) => document.querySelector(s);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   /* ---------- État ---------- */
   function fresh() {
     return {
-      n: 9,
+      n: 9, g: 3,
       teams: Array.from({ length: MAX_N }, (_, i) => 'Équipe ' + (i + 1)),
       cfg: { start: '14:00', duration: 30, transition: 3, pitches: 4 },
       scores: {}, pen: {}
@@ -144,7 +153,8 @@
     const f = fresh();
     const n = Math.min(MAX_N, Math.max(MIN_N, parseInt(s.n, 10) || s.teams.length));
     const teams = f.teams.map((d, i) => (typeof s.teams[i] === 'string' ? s.teams[i] : d));
-    return Object.assign(f, s, { n: n, teams: teams, cfg: Object.assign(f.cfg, s.cfg) });
+    const g = GROUP_OPTS[n].indexOf(parseInt(s.g, 10)) >= 0 ? parseInt(s.g, 10) : defaultG(n);
+    return Object.assign(f, s, { n: n, g: g, teams: teams, cfg: Object.assign(f.cfg, s.cfg) });
   }
   function load() {
     try { return normalize(JSON.parse(localStorage.getItem(KEY))) || fresh(); } catch (e) { return fresh(); }
@@ -174,14 +184,14 @@
   const ordinal = (n) => (n === 1 ? '1er' : n + 'e');
 
   /* ---------- Structure du tournoi ---------- */
-  const sizes = () => SIZES[state.n];
+  const sizes = () => sizesFor(state.n, state.g);
   const mode = () => (sizes().length === 2 ? 'cross' : 'sf');
   const groupStart = (g) => sizes().slice(0, g).reduce((a, b) => a + b, 0);
 
   function groupRound(g, r) {
     const base = groupStart(g);
     const size = sizes()[g];
-    const tpl = size === 3 ? R3 : size === 4 ? R4 : R5;
+    const tpl = size === 3 ? R3 : size === 4 ? R4 : size === 5 ? R5 : R6;
     return (tpl[r] || []).map((p, k) => ({ id: 'G' + g + '-' + r + (k ? '-' + k : ''), a: base + p[0], b: base + p[1] }));
   }
   const groupMatchList = (g) => Array.from({ length: roundsOf(sizes()[g]) }, (_, r) => r).reduce((acc, r) => acc.concat(groupRound(g, r)), []);
@@ -291,7 +301,7 @@
 
     if (q.mode === 'cross') {
       const k = Math.min.apply(null, sizes());
-      const ids = ['F', 'P3', 'P5', 'P7', 'P9'], metas = ['Finale', 'Petite finale', '5e place', '7e place', '9e place'];
+      const ids = ['F', 'P3', 'P5', 'P7', 'P9', 'P11'], metas = ['Finale', 'Petite finale', '5e place', '7e place', '9e place', '11e place'];
       const ms = [];
       for (let x = 0; x < k; x++) {
         ms.push(mk(ids[x], metas[x], q.ready ? q.cross[x].a : null, q.ready ? q.cross[x].b : null, ordinal(x + 1) + ' poule A', ordinal(x + 1) + ' poule B'));
@@ -413,7 +423,7 @@
 
     $('#note').textContent = 'Départage : points, différence de buts, buts marqués' + (new Set(sizes()).size > 1 ? ' (comparés par match entre poules de tailles différentes)' : '') + '. ' +
       (q.mode === 'cross'
-        ? 'Finale : les 1ers de chaque poule ; petite finale : les 2es ; puis 5e place (3es)' + (Math.min.apply(null, sizes()) >= 4 ? ', 7e place (4es)' : '') + (Math.min.apply(null, sizes()) >= 5 ? ', 9e place (5es)' : '') + '.'
+        ? 'Finale : les 1ers de chaque poule ; petite finale : les 2es ; puis 5e place (3es)' + (Math.min.apply(null, sizes()) >= 4 ? ', 7e place (4es)' : '') + (Math.min.apply(null, sizes()) >= 5 ? ', 9e place (5es)' : '') + (Math.min.apply(null, sizes()) >= 6 ? ', 11e place (6es)' : '') + '.'
         : 'Demi-finales : les 3 premiers de poule + le meilleur 2e. Les deux autres 2es jouent la 5e place' +
           (consCount() ? ', les autres équipes s\u2019affrontent ensuite par rang pour les places suivantes.' : '.'));
   }
@@ -454,18 +464,31 @@
         Array.from({ length: size }, (_, k) => '<input type="text" data-team="' + (base + k) + '" value="' + esc(state.teams[base + k]) + '">').join('') + '</div>';
     }).join('');
     $('#count').value = state.n;
+    renderGroupOpts();
     $('#start').value = state.cfg.start;
     $('#duration').value = state.cfg.duration;
     $('#transition').value = state.cfg.transition;
     $('#pitches').value = state.cfg.pitches;
   }
 
+  function renderGroupOpts() {
+    $('#groups').innerHTML = GROUP_OPTS[state.n].map((g) => '<option value="' + g + '">' + g + ' poules (' + sizesFor(state.n, g).join(' + ') + ')</option>').join('');
+    $('#groups').value = state.g;
+  }
+  $('#groups').addEventListener('change', (e) => {
+    const g = parseInt(e.target.value, 10);
+    if (g === state.g) return;
+    if (Object.keys(state.scores).length && !confirm('Changer le nombre de poules efface les scores. Continuer ?')) { e.target.value = state.g; return; }
+    state.g = g; state.scores = {}; state.pen = {};
+    renderTeams();
+    render();
+  });
   $('#count').innerHTML = Array.from({ length: MAX_N - MIN_N + 1 }, (_, k) => '<option value="' + (MIN_N + k) + '">' + (MIN_N + k) + '</option>').join('');
   $('#count').addEventListener('change', (e) => {
     const n = parseInt(e.target.value, 10);
     if (n === state.n) return;
     if (Object.keys(state.scores).length && !confirm('Changer le nombre d\u2019équipes efface les scores. Continuer ?')) { e.target.value = state.n; return; }
-    state.n = n; state.scores = {}; state.pen = {};
+    state.n = n; state.g = defaultG(n); state.scores = {}; state.pen = {};
     renderTeams();
     render();
   });
