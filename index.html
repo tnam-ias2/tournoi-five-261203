@@ -355,20 +355,50 @@
     return html;
   }
 
-  /* Découpe chaque tour en créneaux de P matchs maximum (un match par terrain) */
+  /* Répartition optimisée : chaque créneau remplit tous les terrains (jusqu'à P matchs).
+     Une équipe ne joue jamais deux fois dans le même créneau ; on évite aussi qu'elle enchaîne
+     deux créneaux quand c'est possible. La phase finale n'est lancée qu'une fois les poules
+     terminées, et la finale / petite finale après les demi-finales. Le planning ne dépend que
+     de la structure du tournoi, jamais des résultats saisis. */
   function slotsOf(plan) {
-    const P = state.cfg.pitches, out = [];
+    const P = state.cfg.pitches;
+    const items = [];
+    let ko = 0;
     plan.rounds.forEach((rd) => {
-      const n = Math.ceil(rd.matches.length / P);
-      for (let k = 0; k < n; k++) {
-        out.push({
-          label: rd.label + (n > 1 ? ' (' + (k + 1) + '/' + n + ')' : ''),
-          matches: rd.matches.slice(k * P, (k + 1) * P),
-          rest: k === n - 1 ? rd.rest : ''
-        });
-      }
+      const isKo = !!rd.matches[0].ko;
+      const level = isKo ? 1 + ko++ : 0;
+      rd.matches.forEach((m) => items.push({ m: m, level: level, feeds: m.id === 'SF1' || m.id === 'SF2' }));
     });
-    return out;
+    const left = items.slice();
+    // dans un même niveau, les matchs qui alimentent la suite passent en premier
+    left.sort((x, y) => x.level - y.level || (y.feeds ? 1 : 0) - (x.feeds ? 1 : 0));
+    const slots = [];
+    let guard = 0;
+    while (left.length && guard++ < 500) {
+      const lvl0 = left.some((it) => it.level === 0);
+      const feeding = left.some((it) => it.feeds);
+      const open = (it) => it.level === 0 || (it.level === 1 && !lvl0) || (it.level === 2 && !lvl0 && !feeding);
+      const prev = slots.length ? slots[slots.length - 1].teams : new Set();
+      const used = new Set(), chosen = [];
+      const clash = (m, set) => !m.ko && (set.has(m.a) || set.has(m.b));
+      [true, false].forEach((avoidPrev) => {
+        for (let k = 0; k < left.length && chosen.length < P; k++) {
+          const it = left[k];
+          if (!open(it) || chosen.indexOf(it) >= 0) continue;
+          if (clash(it.m, used) || (avoidPrev && clash(it.m, prev))) continue;
+          chosen.push(it);
+          if (!it.m.ko) { used.add(it.m.a); used.add(it.m.b); }
+        }
+      });
+      if (!chosen.length) break;
+      chosen.forEach((it) => left.splice(left.indexOf(it), 1));
+      const ms = chosen.map((it) => it.m);
+      const has = (id) => ms.some((m) => m.id === id);
+      const label = has('F') ? 'Finales' : (has('SF1') ? 'Demi-finales' : (ms.some((m) => m.ko) ? 'Classement' : 'Poules'));
+      slots.push({ matches: ms, teams: used, label: label });
+    }
+    slots.forEach((sl, i) => { sl.label = 'Créneau ' + (i + 1) + ' · ' + sl.label; });
+    return slots;
   }
 
   function renderPlanning(plan) {
@@ -379,7 +409,7 @@
       t += c.duration + c.transition;
       return '<div class="round"><div class="rh"><span>' + esc(sl.label) + '</span><span class="t">' + fmt(start) + ' – ' + fmt(start + c.duration) + '</span></div>' +
         sl.matches.map((m, i) => matchHTML(m, i + 1)).join('') +
-        (sl.rest ? '<div class="rest">Au repos : ' + esc(sl.rest) + '</div>' : '') + '</div>';
+        '</div>';
     }).join('');
   }
 
@@ -432,7 +462,7 @@
     const c = state.cfg, st = toMin(c.start), z = sizes();
     const slots = slotsOf(plan), n = slots.length;
     const end = st + n * c.duration + (n - 1) * c.transition;
-    const par = Math.max.apply(null, plan.rounds.map((r) => r.matches.length));
+    const par = Math.max.apply(null, slots.map((sl) => sl.matches.length));
     const comp = z.every((v) => v === z[0]) ? z.length + ' poules de ' + z[0] : z.length + ' poules (' + z.join(' + ') + ')';
     $('#title').textContent = 'Tournoi de five · ' + state.n + ' équipes';
     document.title = 'Tournoi de five · ' + state.n + ' équipes';
