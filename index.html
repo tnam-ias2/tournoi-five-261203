@@ -90,6 +90,8 @@
   <div class="opts">
     <div><label for="count">Équipes</label><select id="count"></select></div>
     <div style="width:170px"><label for="groups">Poules</label><select id="groups"></select></div>
+    <div id="finBox" style="width:150px"><label for="fin">Phase finale</label><select id="fin"><option value="sf">Demi-finales</option><option value="direct">Finale directe</option></select></div>
+    <div style="width:120px"><label for="bonus">Matchs bonus</label><select id="bonus"><option value="0">Non</option><option value="1">Oui</option></select></div>
     <div><label for="start">Début</label><input type="time" id="start"></div>
     <div><label for="duration">Match (min)</label><input type="number" id="duration" min="1" max="120"></div>
     <div><label for="transition">Transition (min)</label><input type="number" id="transition" min="0" max="30"></div>
@@ -142,7 +144,7 @@
   /* ---------- État ---------- */
   function fresh() {
     return {
-      n: 9, g: 3,
+      n: 9, g: 3, fin: 'sf', bonus: false,
       teams: Array.from({ length: MAX_N }, (_, i) => 'Équipe ' + (i + 1)),
       cfg: { start: '14:00', duration: 30, transition: 3, pitches: 4 },
       scores: {}, pen: {}
@@ -154,7 +156,7 @@
     const n = Math.min(MAX_N, Math.max(MIN_N, parseInt(s.n, 10) || s.teams.length));
     const teams = f.teams.map((d, i) => (typeof s.teams[i] === 'string' ? s.teams[i] : d));
     const g = GROUP_OPTS[n].indexOf(parseInt(s.g, 10)) >= 0 ? parseInt(s.g, 10) : defaultG(n);
-    return Object.assign(f, s, { n: n, g: g, teams: teams, cfg: Object.assign(f.cfg, s.cfg) });
+    return Object.assign(f, s, { n: n, g: g, fin: s.fin === 'direct' ? 'direct' : 'sf', bonus: !!s.bonus, teams: teams, cfg: Object.assign(f.cfg, s.cfg) });
   }
   function load() {
     try { return normalize(JSON.parse(localStorage.getItem(KEY))) || fresh(); } catch (e) { return fresh(); }
@@ -309,19 +311,31 @@
       rounds.push({ label: 'Tour ' + (NR + 1) + ' · Finales', matches: ms });
       placeIds = ids.slice(0, k);
     } else {
-      const sf1 = mk('SF1', 'Demi-finale 1', at(q.sf, 0) && q.sf[0][0], at(q.sf, 0) && q.sf[0][1], 'Tête de série 1', 'Tête de série 4');
-      const sf2 = mk('SF2', 'Demi-finale 2', at(q.sf, 1) && q.sf[1][0], at(q.sf, 1) && q.sf[1][1], 'Tête de série 2', 'Tête de série 3');
-      const p5 = mk('P5', '5e place', q.ready ? q.p5[0] : null, q.ready ? q.p5[1] : null, '2e de poule', '2e de poule');
-      const o1 = outcome('SF1', sf1.a, sf1.b), o2 = outcome('SF2', sf2.a, sf2.b);
-      const fin = mk('F', 'Finale', o1 && o2 ? o1.w : null, o1 && o2 ? o2.w : null, 'Vainqueur DF1', 'Vainqueur DF2');
-      const p3 = mk('P3', 'Petite finale', o1 && o2 ? o1.l : null, o1 && o2 ? o2.l : null, 'Perdant DF1', 'Perdant DF2');
       const consIds = ['P7', 'P9', 'P11'], consMeta = ['7e place', '9e place', '11e place'];
-      const cons = [];
-      for (let j = 0; j < consCount(); j++) {
-        cons.push(mk(consIds[j], consMeta[j], q.ready ? q.cons[j][0] : null, q.ready ? q.cons[j][1] : null, 'À déterminer', 'À déterminer'));
+      const mkCons = () => {
+        const cons = [];
+        for (let j = 0; j < consCount(); j++) {
+          cons.push(mk(consIds[j], consMeta[j], q.ready ? q.cons[j][0] : null, q.ready ? q.cons[j][1] : null, 'À déterminer', 'À déterminer'));
+        }
+        return cons;
+      };
+      const p5 = mk('P5', '5e place', q.ready ? q.p5[0] : null, q.ready ? q.p5[1] : null, '2e de poule', '2e de poule');
+      if (state.fin === 'direct') {
+        // finale directe : pas de demi-finales, tout se joue en un seul créneau de phase finale
+        const sd = q.ready ? q.seeds : null;
+        const fin = mk('F', 'Finale', sd && sd[0].i, sd && sd[1].i, 'Tête de série 1', 'Tête de série 2');
+        const p3 = mk('P3', 'Petite finale', sd && sd[2].i, sd && sd[3].i, 'Tête de série 3', 'Tête de série 4');
+        rounds.push({ label: 'Tour ' + (NR + 1) + ' · Phase finale', matches: [fin, p3, p5].concat(mkCons()) });
+      } else {
+        const sf1 = mk('SF1', 'Demi-finale 1', at(q.sf, 0) && q.sf[0][0], at(q.sf, 0) && q.sf[0][1], 'Tête de série 1', 'Tête de série 4');
+        const sf2 = mk('SF2', 'Demi-finale 2', at(q.sf, 1) && q.sf[1][0], at(q.sf, 1) && q.sf[1][1], 'Tête de série 2', 'Tête de série 3');
+        const o1 = outcome('SF1', sf1.a, sf1.b), o2 = outcome('SF2', sf2.a, sf2.b);
+        const fin = mk('F', 'Finale', o1 && o2 ? o1.w : null, o1 && o2 ? o2.w : null, 'Vainqueur DF1', 'Vainqueur DF2');
+        const p3 = mk('P3', 'Petite finale', o1 && o2 ? o1.l : null, o1 && o2 ? o2.l : null, 'Perdant DF1', 'Perdant DF2');
+        const cons = mkCons();
+        rounds.push({ label: 'Tour ' + (NR + 1) + ' · Demi-finales', matches: [sf1, sf2, p5].concat(cons.slice(0, 1)) });
+        rounds.push({ label: 'Tour ' + (NR + 2) + ' · Finales', matches: [fin, p3].concat(cons.slice(1)) });
       }
-      rounds.push({ label: 'Tour ' + (NR + 1) + ' · Demi-finales', matches: [sf1, sf2, p5].concat(cons.slice(0, 1)) });
-      rounds.push({ label: 'Tour ' + (NR + 2) + ' · Finales', matches: [fin, p3].concat(cons.slice(1)) });
       placeIds = ['F', 'P3', 'P5'].concat(consIds.slice(0, consCount()));
     }
 
@@ -374,6 +388,8 @@
     left.sort((x, y) => x.level - y.level || (y.feeds ? 1 : 0) - (x.feeds ? 1 : 0));
     const slots = [];
     let guard = 0;
+    const bonusCount = {}, bonusPairs = new Set();
+    const groupOf = (i) => { let g = 0; while (i >= groupStart(g) + sizes()[g]) g++; return g; };
     while (left.length && guard++ < 500) {
       const lvl0 = left.some((it) => it.level === 0);
       const feeding = left.some((it) => it.feeds);
@@ -393,8 +409,28 @@
       if (!chosen.length) break;
       chosen.forEach((it) => left.splice(left.indexOf(it), 1));
       const ms = chosen.map((it) => it.m);
+      // matchs bonus : sur les terrains libres d'un créneau de poules, des équipes au repos de poules différentes se rencontrent
+      if (state.bonus && chosen.every((it) => it.level === 0) && ms.length < P) {
+        const total = state.n, rest = [];
+        for (let i = 0; i < total; i++) if (!used.has(i)) rest.push(i);
+        rest.sort((x, y) => (bonusCount[x] || 0) - (bonusCount[y] || 0) || x - y);
+        const taken = new Set();
+        for (let x = 0; x < rest.length && ms.length < P; x++) {
+          if (taken.has(rest[x])) continue;
+          for (let y = x + 1; y < rest.length; y++) {
+            const u = rest[x], v = rest[y];
+            if (taken.has(v) || groupOf(u) === groupOf(v) || bonusPairs.has(u + '-' + v) || bonusPairs.has(v + '-' + u)) continue;
+            if ((bonusCount[u] || 0) > 0 && (bonusCount[v] || 0) > 0) continue;   // chaque équipe, un bonus en priorité
+            taken.add(u); taken.add(v);
+            bonusPairs.add(u + '-' + v);
+            bonusCount[u] = (bonusCount[u] || 0) + 1; bonusCount[v] = (bonusCount[v] || 0) + 1;
+            ms.push({ id: 'B' + u + '-' + v, a: u, b: v, meta: 'Match bonus', la: name(u), lb: name(v), bonus: true });
+            break;
+          }
+        }
+      }
       const has = (id) => ms.some((m) => m.id === id);
-      const label = has('F') ? 'Finales' : (has('SF1') ? 'Demi-finales' : (ms.some((m) => m.ko) ? 'Classement' : 'Poules'));
+      const label = has('F') ? 'Finales' : (has('SF1') ? 'Demi-finales' : (ms.some((m) => m.ko) ? 'Classement' : (ms.some((m) => !m.bonus) ? 'Poules' : 'Bonus')));
       slots.push({ matches: ms, teams: used, label: label });
     }
     slots.forEach((sl, i) => { sl.label = 'Créneau ' + (i + 1) + ' · ' + sl.label; });
@@ -429,7 +465,7 @@
     $('#tables').innerHTML = q.tabs.map((t, g) => tableHTML(g, t)).join('');
 
     $('#seeds').innerHTML = q.ready && q.mode === 'sf'
-      ? '<h2>Qualifiés pour les demi-finales</h2><ol class="rank">' +
+      ? '<h2>' + (state.fin === 'direct' ? 'Qualifiés pour la phase finale' : 'Qualifiés pour les demi-finales') + '</h2><ol class="rank">' +
         q.seeds.map((r, k) => '<li><span class="pos">' + (k + 1) + '</span><span>' + esc(name(r.i)) +
           ' <span class="sub">· ' + (k < 3 ? '1er' : 'meilleur 2e') + ' poule ' + LETTERS[r.g] + '</span></span></li>').join('') + '</ol>'
       : '';
@@ -454,7 +490,9 @@
     $('#note').textContent = 'Départage : points, différence de buts, buts marqués' + (new Set(sizes()).size > 1 ? ' (comparés par match entre poules de tailles différentes)' : '') + '. ' +
       (q.mode === 'cross'
         ? 'Finale : les 1ers de chaque poule ; petite finale : les 2es ; puis 5e place (3es)' + (Math.min.apply(null, sizes()) >= 4 ? ', 7e place (4es)' : '') + (Math.min.apply(null, sizes()) >= 5 ? ', 9e place (5es)' : '') + (Math.min.apply(null, sizes()) >= 6 ? ', 11e place (6es)' : '') + '.'
-        : 'Demi-finales : les 3 premiers de poule + le meilleur 2e. Les deux autres 2es jouent la 5e place' +
+        : (state.fin === 'direct'
+            ? 'Finale directe : les 3 premiers de poule + le meilleur 2e sont classés ; les 2 premiers jouent la finale, les 2 suivants la petite finale. Les deux autres 2es jouent la 5e place'
+            : 'Demi-finales : les 3 premiers de poule + le meilleur 2e. Les deux autres 2es jouent la 5e place') +
           (consCount() ? ', les autres équipes s\u2019affrontent ensuite par rang pour les places suivantes.' : '.'));
   }
 
@@ -495,6 +533,9 @@
     }).join('');
     $('#count').value = state.n;
     renderGroupOpts();
+    $('#fin').value = state.fin;
+    $('#bonus').value = state.bonus ? '1' : '0';
+    $('#finBox').style.display = mode() === 'sf' ? '' : 'none';
     $('#start').value = state.cfg.start;
     $('#duration').value = state.cfg.duration;
     $('#transition').value = state.cfg.transition;
@@ -505,6 +546,17 @@
     $('#groups').innerHTML = GROUP_OPTS[state.n].map((g) => '<option value="' + g + '">' + g + ' poules (' + sizesFor(state.n, g).join(' + ') + ')</option>').join('');
     $('#groups').value = state.g;
   }
+  $('#fin').addEventListener('change', (e) => {
+    const f = e.target.value;
+    if (f === state.fin) return;
+    const koIds = Object.keys(state.scores).filter((id) => !/^[GB]/.test(id));
+    if (koIds.length && !confirm('Changer la phase finale efface les scores de la phase finale. Continuer ?')) { e.target.value = state.fin; return; }
+    koIds.forEach((id) => { delete state.scores[id]; });
+    state.pen = {};
+    state.fin = f;
+    render();
+  });
+  $('#bonus').addEventListener('change', (e) => { state.bonus = e.target.value === '1'; render(); });
   $('#groups').addEventListener('change', (e) => {
     const g = parseInt(e.target.value, 10);
     if (g === state.g) return;
